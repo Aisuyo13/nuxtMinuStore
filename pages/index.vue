@@ -15,6 +15,7 @@
   import { useRouter } from 'vue-router'
   import CryptoJS from 'crypto-js'
   import { onMounted } from 'vue'
+  import { useUserStore } from '~/stores/user'
   const { data } = await useFetch<User[]>('/data/users.json', {server: false})
   
   interface User {
@@ -32,6 +33,7 @@
   const password = ref('')
   const error = ref('')
   const router = useRouter()
+  const userStore = useUserStore()
   
   const handleLogin = () => {
     const hashed = CryptoJS.MD5(password.value).toString()
@@ -45,6 +47,7 @@
     if (user && user.active) {
       localStorage.setItem('session', user.credentials.username)
       router.push('/account')
+      userStore.loadUser()
     } else {
       error.value = 'Неверный логин или пароль'
     }

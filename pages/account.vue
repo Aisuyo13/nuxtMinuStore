@@ -24,63 +24,46 @@
 
 <script setup lang="ts">
 
-    import { useRouter } from 'vue-router'
-    import { onMounted } from 'vue'
-    import { ref } from 'vue'
-
-    interface User {
-
-      name: string
-      surname: string
-      credentials: {
-          username: string
-          passphrase: string
-      }
-      active: boolean
-      created: string
-      basket: []
-  }
+  import { useRouter } from 'vue-router'
+  import { onMounted } from 'vue'
+  import { ref } from 'vue'
+  import { useUserStore } from '~/stores/user'
 
   interface Product {
-        id: number
-        name: string
-        price: number
-        description: string
+      id: number
+      name: string
+      price: number
+      description: string
     }
 
     const router = useRouter()
+    const useUser = useUserStore()
     
 
-    const myUser = ref<User | null>(null)
+    const myUser = useUser.myUser
     const myProducts = ref<Product[]>([])
 
     onMounted(async () =>{
 
-        const sessionName = localStorage.getItem('session')
+      const sessionName = localStorage.getItem('session')
 
-        if (!sessionName) {
-            router.push('/')
-            return
+      if (!sessionName) {
+        router.push('/')
+        return
+      }
+
+      if (!myUser) {
+        router.push('/')
+        return
+      }
+
+      const productList = await $fetch<Product[]>('/data/products.json')
+      myUser.basket.map((myProductId) => {
+        const product = productList.find((product) => product.id === myProductId)
+        if (product) {
+          myProducts.value.push(product)
         }
-
-
-        const userList = await $fetch<User[]>('/data/users.json')
-        const userFound = userList.find((user) => user.credentials.username === sessionName)
-
-        if (!userFound) {
-            router.push('/')
-            return
-        }
-
-        const productList = await $fetch<Product[]>('/data/products.json')
-        userFound.basket.map((myProductId) => {
-          const product = productList.find((product) => product.id === myProductId)
-          if (product) {
-            myProducts.value.push(product)
-          }
-        })
-
-        myUser.value = userFound
+      })
 
     })
     

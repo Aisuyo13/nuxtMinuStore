@@ -8,7 +8,7 @@
                 <li><NuxtLink  class="nav-item" to="/about">О нас</NuxtLink></li>
             </ul>
         </nav>
-        <button @click="logout" class="logout-btn">Выход</button>
+        <button v-if="userStore.myUser" @click="logout" class="logout-btn">Выход</button>
 
       </header>
   
@@ -27,13 +27,22 @@
 </template>
 
 <script setup lang="ts">
+
     import { useRouter } from 'vue-router'
+    import { useUserStore } from '~/stores/user'    
+    import { onMounted } from 'vue'
     const router = useRouter()
+
+    const userStore = useUserStore()
 
     const logout = () => {
         localStorage.removeItem('session')
+        userStore.clearUser()
         router.push('/')
     }
+
+    userStore.loadUser()
+
 </script>
 
 <style scoped lang="scss">
